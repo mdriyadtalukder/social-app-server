@@ -129,11 +129,12 @@ async function run() {
         })
 
 
-        // Get posts
-        app.get('/posts', async (req, res) => {
-            const result = await postsCollection.find().toArray();
-            res.send(result);
-        });
+        app.get('/posts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await postsCollection.findOne(query)
+            res.send(result)
+        })
         // search posts by email query
         app.get('/post', async (req, res) => {
             const email = req.query.email;
@@ -148,6 +149,42 @@ async function run() {
             res.send(result);
         })
 
+        //update like num
+        app.patch('/updatelike/:id', async (req, res) => {
+            const data = req.body;
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    like: data.like
+
+                }
+            }
+            const result = await postsCollection.updateOne(query, updatedDoc)
+            res.send(result)
+        })
+
+        //update like num
+        app.patch('/updatecomment/:id', async (req, res) => {
+            const data = req.body;
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    comment: data.comment
+
+                }
+            }
+            const result = await postsCollection.updateOne(query, updatedDoc)
+            res.send(result)
+        })
+
+        app.delete('/dpost/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await postsCollection.deleteOne(query);
+            res.send(result);
+        })
 
         // search request by email query
         app.get('/requests', async (req, res) => {
