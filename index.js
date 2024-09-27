@@ -4,9 +4,18 @@ const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 
-app.use(cors({
-    origin: "http://localhost:5173/"  // Change this to your frontend URL
-}));
+const corsConfig = {
+    origin: '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+}
+app.use(cors(corsConfig))
+app.options("*", cors(corsConfig))
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*")
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept,authorization")
+    next()
+})
 app.use(express.json());
 
 
@@ -240,7 +249,7 @@ async function run() {
                 const userQuery = { email: email };
                 const user = await usersCollection.findOne(userQuery);
 
-                if (!user || !user.following || !Array.isArray(user.following)) {
+                if (!user || !Array.isArray(user.following)) {
                     return res.status(404).send({ message: "User not found or no followers" });
                 }
 
@@ -272,7 +281,7 @@ async function run() {
                 const userQuery = { email: email };
                 const user = await usersCollection.findOne(userQuery);
 
-                if (!user || !user.following || !Array.isArray(user.following)) {
+                if (!user || !Array.isArray(user.following)) {
                     return res.status(404).send({ message: "User not found or no followers" });
                 }
 
