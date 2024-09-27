@@ -30,6 +30,8 @@ async function run() {
         const usersCollection = client.db("socialApp").collection("users");
         const postsCollection = client.db("socialApp").collection("posts");
         const requestsCollection = client.db("socialApp").collection("requests");
+        const storiesCollection = client.db("socialApp").collection("stories");
+        const blocksCollection = client.db("socialApp").collection("block");
 
 
         // Get users
@@ -179,6 +181,21 @@ async function run() {
             res.send(result)
         })
 
+        //update like num
+        app.patch('/updateshare/:id', async (req, res) => {
+            const data = req.body;
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    share: data.share
+
+                }
+            }
+            const result = await postsCollection.updateOne(query, updatedDoc)
+            res.send(result)
+        })
+
         app.delete('/dpost/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -186,6 +203,12 @@ async function run() {
             res.send(result);
         })
 
+
+        // Get users
+        app.get('/allrequests', async (req, res) => {
+            const result = await requestsCollection.find().toArray();
+            res.send(result);
+        });
         // search request by email query
         app.get('/requests', async (req, res) => {
             const email = req.query.email;
@@ -232,6 +255,77 @@ async function run() {
             }
         });
 
+        // search story by email query
+        app.get('/story', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const result = await storiesCollection.findOne(query);
+            res.send(result);
+        })
+        app.get('/followingsstories', async (req, res) => {
+            try {
+                const email = req.query.email;
+
+                // Query to find the user by email
+                const userQuery = { email: email };
+                const user = await usersCollection.findOne(userQuery);
+
+                if (!user || !user.following || !Array.isArray(user.following)) {
+                    return res.status(404).send({ message: "User not found or no followers" });
+                }
+
+                // Get the list of follower emails
+                const followerEmails = user.following;
+
+                // Query the postsCollection to find posts by follower emails
+                const postsQuery = { email: { $in: [email, ...followerEmails] } };
+                const posts = await storiesCollection.find(postsQuery).toArray();
+                //console.log(posts)
+                res.send(posts);
+            } catch (error) {
+                res.status(500).send({ message: "Error retrieving followers' posts", error });
+            }
+        });
+        //story add
+        app.post('/stories', async (req, res) => {
+            const item = req.body;
+            const result = await storiesCollection.insertOne(item);
+            res.send(result);
+        });
+
+        //update story num
+        app.patch('/storiesupdate/:id', async (req, res) => {
+            const data = req.body;
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    stories: data.stories
+
+                }
+            }
+            const result = await storiesCollection.updateOne(query, updatedDoc)
+            res.send(result)
+        })
+
+        // search block by email query
+        app.get('/block', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const result = await blocksCollection.find(query).toArray();
+            res.send(result);
+        });
+        app.post('/block', async (req, res) => {
+            const item = req.body;
+            const result = await blocksCollection.insertOne(item);
+            res.send(result);
+        });
+        app.delete('/block/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await blocksCollection.deleteOne(query);
+            res.send(result);
+        })
 
 
 
