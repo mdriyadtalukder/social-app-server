@@ -4,7 +4,9 @@ const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+    origin: "https://social-app-server-8wdw.onrender.com"  // Change this to your frontend URL
+}));
 app.use(express.json());
 
 
